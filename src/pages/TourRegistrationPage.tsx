@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PageTransition from '../components/PageTransition';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -50,6 +50,15 @@ const TourRegistrationPage: React.FC = () => {
   const [bloodGroup, setBloodGroup] = useState('');
 
   const SCRIPT_URL = import.meta.env.VITE_TOUR_REGISTRATION_SCRIPT_URL;
+
+  // Proactive UX: If user says they have no license, auto-select "pillion"
+  useEffect(() => {
+    if (hasLicense === 'No') {
+      setRiderType('Sitting behind');
+    }
+  }, [hasLicense]);
+
+  const isRider = riderType === 'Riding a scooter';
 
   const resetForm = () => {
     setTourType(''); setTourDate(null); setFullName(''); setMobileNumber(undefined);
@@ -229,20 +238,28 @@ const TourRegistrationPage: React.FC = () => {
                 <div>
                   <label className={labelClasses}>Do you have a valid 2-wheeler driving licence?*</label>
                   <div className="flex flex-col md:flex-row gap-4 mt-2">
-                    <label className="flex items-center gap-2 p-3 border border-black/10 rounded-md flex-1 cursor-pointer hover:bg-white/10"><input type="radio" name="hasLicense" required value="Yes" onChange={e => setHasLicense(e.target.value)} className="accent-warm-gold-light" /> Yes</label>
-                    <label className="flex items-center gap-2 p-3 border border-black/10 rounded-md flex-1 cursor-pointer hover:bg-white/10"><input type="radio" name="hasLicense" value="No" onChange={e => setHasLicense(e.target.value)} className="accent-warm-gold-light" /> No, I will only be a pillion rider</label>
+                    <label className="flex items-center gap-2 p-3 border border-black/10 rounded-md flex-1 cursor-pointer hover:bg-white/10">
+                      <input type="radio" name="hasLicense" required value="Yes" checked={hasLicense === 'Yes'} onChange={e => setHasLicense(e.target.value)} className="accent-warm-gold-light" /> Yes
+                    </label>
+                    <label className="flex items-center gap-2 p-3 border border-black/10 rounded-md flex-1 cursor-pointer hover:bg-white/10">
+                      <input type="radio" name="hasLicense" value="No" checked={hasLicense === 'No'} onChange={e => setHasLicense(e.target.value)} className="accent-warm-gold-light" /> No, I will only be a pillion rider
+                    </label>
                   </div>
                 </div>
                 <div>
                   <label className={labelClasses}>Rider / Pillion*</label>
                    <div className="flex flex-col md:flex-row gap-4 mt-2">
-                    <label className="flex items-center gap-2 p-3 border border-black/10 rounded-md flex-1 cursor-pointer hover:bg-white/10"><input type="radio" name="riderType" required value="Riding a scooter" onChange={e => setRiderType(e.target.value)} className="accent-warm-gold-light" /> Riding a scooter</label>
-                    <label className="flex items-center gap-2 p-3 border border-black/10 rounded-md flex-1 cursor-pointer hover:bg-white/10"><input type="radio" name="riderType" value="Sitting behind" onChange={e => setRiderType(e.target.value)} className="accent-warm-gold-light" /> Sitting behind (pillion)</label>
+                    <label className={`flex items-center gap-2 p-3 border border-black/10 rounded-md flex-1 transition-opacity ${hasLicense === 'No' ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-white/10'}`}>
+                      <input type="radio" name="riderType" required value="Riding a scooter" checked={riderType === 'Riding a scooter'} onChange={e => setRiderType(e.target.value)} className="accent-warm-gold-light" disabled={hasLicense === 'No'} /> Riding a scooter
+                    </label>
+                    <label className="flex items-center gap-2 p-3 border border-black/10 rounded-md flex-1 cursor-pointer hover:bg-white/10">
+                      <input type="radio" name="riderType" value="Sitting behind" checked={riderType === 'Sitting behind'} onChange={e => setRiderType(e.target.value)} className="accent-warm-gold-light" /> Sitting behind (pillion)
+                    </label>
                   </div>
                 </div>
                 <div>
-                  <label className={labelClasses}>Upload Driving Licence Photo (Optional)</label>
-                  <input type="file" accept="image/*" onChange={e => setLicensePhoto(e.target.files ? e.target.files[0] : null)} className={`${inputClasses} p-0 file:p-3 file:mr-4 file:border-0 file:bg-white/10 file:font-semibold file:text-warm-text/80 hover:file:bg-white/20`} />
+                  <label className={labelClasses}>Upload Driving Licence Photo{isRider ? '*' : ' (Optional)'}</label>
+                  <input type="file" accept="image/*" required={isRider} onChange={e => setLicensePhoto(e.target.files ? e.target.files[0] : null)} className={`${inputClasses} p-0 file:p-3 file:mr-4 file:border-0 file:bg-white/10 file:font-semibold file:text-warm-text/80 hover:file:bg-white/20`} />
                 </div>
               </div>
             </fieldset>
